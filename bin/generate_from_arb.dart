@@ -32,7 +32,7 @@ import 'package:intl_translation/src/icu_parser.dart';
 
 /// Keeps track of all the messages we have processed so far, keyed by message
 /// name.
-Map<String, List<MainMessage>> messages;
+Map<String, List<MainMessage>>? messages;
 
 const jsonDecoder = const JsonCodec();
 
@@ -41,8 +41,8 @@ main(List<String> args) {
   var parser = new ArgParser();
   var extraction = new MessageExtraction();
   var generation = new MessageGeneration();
-  String sourcesListFile;
-  String translationsListFile;
+  String? sourcesListFile;
+  String? translationsListFile;
   var transformer;
   parser.addFlag('json', defaultsTo: false, callback: (useJson) {
     generation =
@@ -58,7 +58,7 @@ main(List<String> args) {
       help: 'Specify the output directory.');
   parser.addOption("generated-file-prefix",
       defaultsTo: '',
-      callback: (x) => generation.generatedFilePrefix = x,
+      callback: (x) => generation.generatedFilePrefix = x!,
       help: 'Specify a prefix to be used for the generated file names.');
   parser.addFlag("use-deferred-loading",
       defaultsTo: true,
@@ -115,7 +115,7 @@ main(List<String> args) {
   messages = new Map();
   for (var eachMap in allMessages) {
     eachMap.forEach(
-        (key, value) => messages.putIfAbsent(key, () => []).add(value));
+        (key, value) => messages!.putIfAbsent(key, () => []).add(value));
   }
   var messagesByLocale = <String, List<Map>>{};
 
@@ -168,7 +168,7 @@ void generateLocaleFile(String locale, List<Map> localeData, String targetDir,
   List<TranslatedMessage> translations = [];
   for (var jsonTranslations in localeData) {
     jsonTranslations.forEach((id, messageData) {
-      TranslatedMessage message = recreateIntlObjects(id, messageData);
+      TranslatedMessage? message = recreateIntlObjects(id, messageData);
       if (message != null) {
         translations.add(message);
       }
@@ -181,7 +181,7 @@ void generateLocaleFile(String locale, List<Map> localeData, String targetDir,
 /// things that are messages, we expect [id] not to start with "@" and
 /// [data] to be a String. For metadata we expect [id] to start with "@"
 /// and [data] to be a Map or null. For metadata we return null.
-BasicTranslatedMessage recreateIntlObjects(String id, data) {
+BasicTranslatedMessage? recreateIntlObjects(String id, data) {
   if (id.startsWith("@")) return null;
   if (data == null) return null;
   var parsed = pluralAndGenderParser.parse(data).value;
@@ -196,13 +196,13 @@ BasicTranslatedMessage recreateIntlObjects(String id, data) {
 class BasicTranslatedMessage extends TranslatedMessage {
   BasicTranslatedMessage(String name, translated) : super(name, translated);
 
-  List<MainMessage> get originalMessages => (super.originalMessages == null)
+  List<MainMessage>? get originalMessages => (super.originalMessages == null)
       ? _findOriginals()
       : super.originalMessages;
 
   // We know that our [id] is the name of the message, which is used as the
   //key in [messages].
-  List<MainMessage> _findOriginals() => originalMessages = messages[id];
+  List<MainMessage>? _findOriginals() => originalMessages = messages?[id];
 }
 
 final pluralAndGenderParser = new IcuParser().message;

@@ -49,13 +49,13 @@ class MessageGeneration {
   ///
   /// In release mode, a missing translation is an error. In debug mode, it
   /// falls back to the original string.
-  String codegenMode;
+  String? codegenMode;
 
   /// What is the path to the package for which we are generating.
   ///
   /// The exact format of this string depends on the generation mechanism,
   /// so it's left undefined.
-  String package;
+  String? package;
 
   bool get releaseMode => codegenMode == 'release';
 
@@ -96,12 +96,12 @@ class MessageGeneration {
         .where((each) => each.originalMessages != null && each.message != null)
         .toList();
     for (var each in usableTranslations) {
-      for (var original in each.originalMessages) {
+      for (var original in each.originalMessages!) {
         original.addTranslation(locale, each.message);
       }
     }
-    usableTranslations.sort((a, b) =>
-        a.originalMessages.first.name.compareTo(b.originalMessages.first.name));
+    usableTranslations.sort((a, b) => a.originalMessages!.first.name
+        .compareTo(b.originalMessages!.first.name));
 
     writeTranslations(usableTranslations, locale);
 
@@ -115,7 +115,7 @@ class MessageGeneration {
       // Some messages we generate as methods in this class. Simpler ones
       // we inline in the map from names to messages.
       var messagesThatNeedMethods =
-          translation.originalMessages.where(_hasArguments).toSet().toList();
+          translation.originalMessages!.where(_hasArguments).toSet().toList();
       for (var original in messagesThatNeedMethods) {
         output
           ..write("  ")
@@ -129,7 +129,7 @@ class MessageGeneration {
     // Now write the map of names to either the direct translation or to a
     // method.
     var entries = (usableTranslations
-            .expand((translation) => translation.originalMessages)
+            .expand((translation) => translation.originalMessages!)
             .toSet()
             .toList()
               ..sort((a, b) => a.name.compareTo(b.name)))
@@ -224,7 +224,7 @@ class MessageLookup extends MessageLookupByLibrary {
       output.write(loadOperation);
     }
     output.write("};\n");
-    output.write("\nMessageLookupByLibrary _findExact(String localeName) {\n"
+    output.write("\nMessageLookupByLibrary? _findExact(String localeName) {\n"
         "  switch (localeName) {\n");
     for (var rawLocale in allLocales) {
       var locale = Intl.canonicalizedLocale(rawLocale);
@@ -287,7 +287,7 @@ bool _messagesExistFor(String locale) {
   }
 }
 
-MessageLookupByLibrary _findGeneratedMessagesFor(String locale) {
+MessageLookupByLibrary? _findGeneratedMessagesFor(String locale) {
   var actualLocale = Intl.verifiedLocale(locale, _messagesExistFor,
       onFailure: (_) => null);
   if (actualLocale == null) return null;
@@ -341,7 +341,7 @@ import '${generatedFilePrefix}messages_all.dart' show evaluateJsonTemplate;
 
     output.write("  static final messageText = ");
     var entries = usableTranslations
-        .expand((translation) => translation.originalMessages);
+        .expand((translation) => translation.originalMessages!);
     var map = {};
     for (var original in entries) {
       map[original.name] = original.toJsonForLocale(locale);
@@ -436,17 +436,19 @@ abstract class TranslatedMessage {
 
   /// The original messages that we are a translation of. There can
   ///  be more than one original message for the same translation.
-  List<MainMessage> _originalMessages;
+  List<MainMessage>? _originalMessages;
 
-  List<MainMessage> get originalMessages => _originalMessages;
-  set originalMessages(List<MainMessage> x) {
+  List<MainMessage>? get originalMessages => _originalMessages;
+  set originalMessages(List<MainMessage>? x) {
     _originalMessages = x;
   }
 
   /// For backward compatibility, we still have the originalMessage API.
-  MainMessage get originalMessage => originalMessages.first;
-  set originalMessage(MainMessage m) {
-    originalMessages = [m];
+  MainMessage? get originalMessage => originalMessages?.first;
+  set originalMessage(MainMessage? m) {
+    if (m != null) {
+      originalMessages = [m];
+    }
   }
 
   TranslatedMessage(this.id, this.translated);
@@ -465,7 +467,8 @@ abstract class TranslatedMessage {
 String libraryName(String x) =>
     'messages_' + x.replaceAll('-', '_').toLowerCase();
 
-bool _hasArguments(MainMessage message) => message.arguments.length != 0;
+bool _hasArguments(MainMessage message) =>
+    message.arguments != null && message.arguments!.length != 0;
 
 ///  Simple messages are printed directly in the map of message names to
 ///  functions as a call that returns a lambda. e.g.

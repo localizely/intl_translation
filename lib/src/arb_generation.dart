@@ -10,12 +10,12 @@ import 'package:intl_translation/src/intl_message.dart';
 /// is trivial.
 String leaveTheInterpolationsInDartForm(MainMessage msg, chunk) {
   if (chunk is String) return chunk;
-  if (chunk is int) return "\$${msg.arguments[chunk]}";
+  if (chunk is int) return "\$${msg.arguments?[chunk]}";
   return chunk.toCode();
 }
 
 /// Convert the [MainMessage] to a trivial JSON format.
-Map toARB(
+Map? toARB(
   MainMessage message, {
   bool supressMetadata = false,
   bool includeSourceText = false,
@@ -43,8 +43,10 @@ Map arbMetadata(MainMessage message) {
   }
   out["type"] = "text";
   var placeholders = {};
-  for (var arg in message.arguments) {
-    addArgumentFor(message, arg, placeholders);
+  if (message.arguments != null) {
+    for (var arg in message.arguments!) {
+      addArgumentFor(message, arg, placeholders);
+    }
   }
   out["placeholders"] = placeholders;
   return out;
@@ -52,8 +54,8 @@ Map arbMetadata(MainMessage message) {
 
 void addArgumentFor(MainMessage message, String arg, Map result) {
   var extraInfo = {};
-  if (message.examples != null && message.examples[arg] != null) {
-    extraInfo["example"] = message.examples[arg];
+  if (message.examples != null && message.examples![arg] != null) {
+    extraInfo["example"] = message.examples![arg];
   }
   result[arg] = extraInfo;
 }

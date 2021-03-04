@@ -27,7 +27,7 @@ main(List<String> args) {
   var parser = new ArgParser();
   parser.addOption('output',
       defaultsTo: 'transformed_output.dart',
-      callback: (x) => outputFileOption = x,
+      callback: (x) => outputFileOption = x!,
       help: 'Specify the output file.');
   parser.addFlag('replace',
       defaultsTo: false,

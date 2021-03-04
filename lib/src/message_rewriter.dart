@@ -71,7 +71,7 @@ final RegExp argsCheck = new RegExp('[\\n,]\\s+args\:');
 ///
 /// Report errors as coming from [sourceName]
 List findMessages(String source, String sourceName,
-    [MessageExtraction extraction]) {
+    [MessageExtraction? extraction]) {
   extraction = extraction ?? new MessageExtraction();
   try {
     var result = parseString(content: source);
@@ -89,6 +89,6 @@ List findMessages(String source, String sourceName,
   extraction.origin = sourceName;
   var visitor = new MessageFindingVisitor(extraction);
   visitor.generateNameAndArgs = true;
-  extraction.root.accept(visitor);
+  extraction.root!.accept(visitor);
   return visitor.messages.values.toList();
 }

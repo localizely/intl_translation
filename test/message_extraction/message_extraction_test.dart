@@ -44,7 +44,7 @@ var useLocalDirectory = false;
 /// applied to all the arguments of [run]. It will ignore a string that
 /// is an absolute path or begins with "--", because some of the arguments
 /// might be command-line options.
-String asTestDirPath([String s]) {
+String? asTestDirPath([String? s]) {
   if (s == null || s.startsWith("--") || path.isAbsolute(s)) return s;
   return path.join(packageDirectory, 'test', 'message_extraction', s);
 }
@@ -53,7 +53,7 @@ String asTestDirPath([String s]) {
 /// applied to all the arguments of [run]. It will ignore a string that
 /// is an absolute path or begins with "--", because some of the arguments
 /// might be command-line options.
-String asTempDirPath([String s]) {
+String? asTempDirPath([String? s]) {
   if (s == null || s.startsWith("--") || path.isAbsolute(s)) return s;
   return path.join(tempDir, s);
 }
@@ -93,7 +93,7 @@ void copyFilesToTempDirectory() {
     '.packages' // Copy this so that package test can find the imports
   ];
   for (var filename in files) {
-    var file = new File(filename);
+    var file = new File(filename!);
     if (file.existsSync()) {
       file.copySync(path.join(tempDir, path.basename(filename)));
     }
@@ -114,12 +114,12 @@ void deleteGeneratedFiles() {
 /// are in dir() and need to be qualified in case that's not our working
 /// directory.
 Future<ProcessResult> run(
-    ProcessResult previousResult, List<String> filenames) {
+    ProcessResult? previousResult, List<String?> filenames) {
   // If there's a failure in one of the sub-programs, print its output.
   checkResult(previousResult);
   var filesInTheRightDirectory = filenames
       .map((x) => asTempDirPath(x))
-      .map((x) => path.normalize(x))
+      .map((x) => path.normalize(x!))
       .toList();
   // Inject the script argument --output-dir in between the script and its
   // arguments.
@@ -133,7 +133,7 @@ Future<ProcessResult> run(
   return result;
 }
 
-checkResult(ProcessResult previousResult) {
+checkResult(ProcessResult? previousResult) {
   if (previousResult != null) {
     if (previousResult.exitCode != 0) {
       print("Error running sub-program:");
@@ -146,9 +146,9 @@ checkResult(ProcessResult previousResult) {
   }
 }
 
-Future<ProcessResult> extractMessages(ProcessResult previousResult) =>
+Future<ProcessResult> extractMessages(ProcessResult? previousResult) =>
     run(previousResult, [
-      asTestDirPath('../../bin/extract_to_arb.dart'),
+      asTestDirPath('../../bin/extract_to_arb.dart')!,
       '--suppress-warnings',
       '--sources-list-file',
       'dart_list.txt'
@@ -156,14 +156,14 @@ Future<ProcessResult> extractMessages(ProcessResult previousResult) =>
 
 Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
     run(previousResult, [
-      asTestDirPath('make_hardcoded_translation.dart'),
+      asTestDirPath('make_hardcoded_translation.dart')!,
       'intl_messages.arb'
     ]);
 
 Future<ProcessResult> generateCodeFromTranslation(
         ProcessResult previousResult) =>
     run(previousResult, [
-      asTestDirPath('../../bin/generate_from_arb.dart'),
+      asTestDirPath('../../bin/generate_from_arb.dart')!,
       deferredLoadArg,
       '--' + (useJson ? '' : 'no-') + 'json',
       '--generated-file-prefix=foo_',

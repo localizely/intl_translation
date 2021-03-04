@@ -20,11 +20,11 @@ import 'package:path/path.dart' as path;
 main(List<String> args) {
   var targetDir;
   var outputFilename;
-  String sourcesListFile;
-  bool transformer;
+  String? sourcesListFile;
+  late bool transformer;
   var parser = new ArgParser();
   var extraction = new MessageExtraction();
-  String locale;
+  String? locale;
   parser.addFlag("suppress-last-modified",
       defaultsTo: false,
       callback: (x) => extraction.suppressLastModified = x,
@@ -97,11 +97,15 @@ main(List<String> args) {
   for (var arg in dartFiles) {
     var messages = extraction.parseFile(new File(arg), transformer);
     messages.forEach(
-      (k, v) => allMessages.addAll(
-        toARB(v,
+      (k, v) {
+        var arbMessage = toARB(v,
             includeSourceText: extraction.includeSourceText,
-            supressMetadata: extraction.suppressMetaData),
-      ),
+            supressMetadata: extraction.suppressMetaData);
+
+        if (arbMessage != null) {
+          allMessages.addAll(arbMessage);
+        }
+      },
     );
   }
   var file = new File(path.join(targetDir, outputFilename));
